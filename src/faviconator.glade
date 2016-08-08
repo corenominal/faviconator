@@ -164,7 +164,7 @@
               <object class="GtkImage" id="imagePreview">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="pixbuf">faviconator-preview.png</property>
+                <property name="pixbuf">/usr/share/faviconator/faviconator-preview.png</property>
               </object>
               <packing>
                 <property name="expand">False</property>

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Icon=faviconator
+Type=Application
+Name=Faviconator
+Comment=Easy favicon generator.
+Exec=/usr/bin/faviconator
+StartupNotify=true
+Terminal=false

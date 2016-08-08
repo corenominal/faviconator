@@ -11,7 +11,7 @@ from shutil import copyfile
 class faviconator:
     def __init__(self):
         self.home = os.path.expanduser('~')
-        self.gladefile = "faviconator.glade"
+        self.gladefile = "/usr/share/faviconator/faviconator.glade"
         self.builder = Gtk.Builder()
         self.builder.add_from_file(self.gladefile)
         self.builder.connect_signals(self)
@@ -28,7 +28,7 @@ class faviconator:
         self.button_filechooserdialog_ok = self.builder.get_object("button_filechooserdialog_ok")
         self.imagelist = [".png", ".jpg", ".gif", ".jpeg"]
         self.faviconator_img = None
-        self.blank_preview_img = "faviconator-preview-blank.png"
+        self.blank_preview_img = "/usr/share/faviconator/faviconator-preview-blank.png"
         self.img16 = None
         self.img32 = None
 
@@ -68,7 +68,6 @@ class faviconator:
         filename, file_extension = os.path.splitext(f)
         self.faviconator_img = '/tmp/faviconator_img' + file_extension.lower()
         copyfile(f, self.faviconator_img)
-        # convert to png if not other format
         # cp blank preview file
         copyfile(self.blank_preview_img, '/tmp/faviconator-preview.png')
         # scale images

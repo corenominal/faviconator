@@ -1,0 +1,15 @@
+Source: faviconator
+Section: misc
+Priority: extra
+Maintainer: Philip Newborough <corenominal@corenominal.org>
+Build-Depends: debhelper (>= 9.0.0)
+Standards-Version: 3.9.7
+Homepage: https://corenominal.org/projects/faviconator/
+
+Package: faviconator
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}, python, python-gi, gir1.2-gtk-3.0, gir1.2-pango-1.0, imagemagick
+Description: Easy favicon generator
+ A simple little Python GTK GUI application to help you easily
+ create favicons from images.
+ .
