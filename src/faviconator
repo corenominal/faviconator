@@ -1,0 +1,143 @@
+#!/usr/bin/env python
+
+import signal
+import gi
+import os
+gi.require_version('Gtk', '3.0')
+from gi.repository import Gtk
+from subprocess import call
+from shutil import copyfile
+
+class faviconator:
+    def __init__(self):
+        self.home = os.path.expanduser('~')
+        self.gladefile = "faviconator.glade"
+        self.builder = Gtk.Builder()
+        self.builder.add_from_file(self.gladefile)
+        self.builder.connect_signals(self)
+        self.window_main = self.builder.get_object("faviconator")
+
+        self.btnSaveAs = self.builder.get_object("btnSaveAs")
+        self.menuSaveAs = self.builder.get_object("menuSaveAs")
+        self.btnSaveAs.set_sensitive(False)
+        self.menuSaveAs.set_sensitive(False)
+
+        self.aboutdialog = self.builder.get_object("aboutdialog")
+
+        self.filechooserdialog = self.builder.get_object("filechooserdialog")
+        self.button_filechooserdialog_ok = self.builder.get_object("button_filechooserdialog_ok")
+        self.imagelist = [".png", ".jpg", ".gif", ".jpeg"]
+        self.faviconator_img = None
+        self.blank_preview_img = "faviconator-preview-blank.png"
+        self.img16 = None
+        self.img32 = None
+
+        self.filesaveasdialog = self.builder.get_object("filesaveasdialog")
+        self.buttonSave = self.builder.get_object("buttonSave")
+        self.dialogOverwrite = self.builder.get_object("dialogOverwrite")
+
+        self.imagePreview = self.builder.get_object("imagePreview")
+
+        self.toolbar = self.builder.get_object("toolbar")
+        self.toolbar.get_style_context().add_class(Gtk.STYLE_CLASS_PRIMARY_TOOLBAR)
+        self.toolbar.set_hexpand(True)
+        self.window_main.show()
+
+    def on_faviconator_destroy(self, object):
+        Gtk.main_quit()
+
+    def on_open_clicked(self, object):
+        self.filechooserdialog.set_current_folder(self.home)
+        self.response = self.filechooserdialog.run()
+        self.filechooserdialog.hide()
+
+    def filechooserdialog_selection_changed_cb(self, object):
+        self.button_filechooserdialog_ok.set_sensitive(False)
+        d = self.filechooserdialog.get_current_folder()
+        if d is not None:
+            self.home = d
+
+        f = self.filechooserdialog.get_filename()
+        if f is not None:
+            filename, file_extension = os.path.splitext(f)
+            if file_extension.lower() in self.imagelist:
+                self.button_filechooserdialog_ok.set_sensitive(True)
+
+    def on_button_filechooserdialog_ok_clicked(self, object):
+        f = self.filechooserdialog.get_filename()
+        filename, file_extension = os.path.splitext(f)
+        self.faviconator_img = '/tmp/faviconator_img' + file_extension.lower()
+        copyfile(f, self.faviconator_img)
+        # convert to png if not other format
+        # cp blank preview file
+        copyfile(self.blank_preview_img, '/tmp/faviconator-preview.png')
+        # scale images
+        self.img32 = '/tmp/faviconator_img32' + file_extension.lower()
+        call(['convert', self.faviconator_img, '-resize', '32x32!', self.img32])
+        self.img16 = '/tmp/faviconator_img16' + file_extension.lower()
+        call(['convert', self.faviconator_img, '-resize', '16x16!', self.img16])
+        # merge 24,36 & 234,36
+        call(['composite', '-geometry', '+24+36', self.img16, '/tmp/faviconator-preview.png', '/tmp/faviconator-preview.png'])
+        call(['composite', '-geometry', '+234+36', self.img16, '/tmp/faviconator-preview.png', '/tmp/faviconator-preview.png'])
+        # update preview
+        self.imagePreview.set_from_file("/tmp/faviconator-preview.png")
+        # create the favicon
+        # convert favicon.png -define icon:auto-resize=32,16 favicon.ico
+        call(['convert', self.img32, '-define', 'icon:auto-resize=32,16', '/tmp/favicon.ico'])
+        # enable save buttons
+        self.btnSaveAs.set_sensitive(True)
+        self.menuSaveAs.set_sensitive(True)
+        # hide open dialog
+        self.filechooserdialog.hide()
+
+    def on_button_filechooserdialog_cancel_clicked(self, object):
+        self.filechooserdialog.hide()
+
+    def on_btnSaveAs_clicked(self, object):
+        self.filesaveasdialog.set_current_name("favicon.ico")
+        self.filesaveasdialog.set_current_folder(self.home)
+        self.response = self.filesaveasdialog.run()
+        self.filesaveasdialog.hide()
+
+    def on_filesaveasdialog_selection_changed(self, object):
+        self.buttonSave.set_sensitive(False)
+        d = self.filesaveasdialog.get_current_folder()
+        if os.access(d, os.W_OK):
+            self.buttonSave.set_sensitive(True)
+            self.home = d
+
+    def on_buttonSave_clicked(self, object):
+        f = self.filesaveasdialog.get_current_name()
+        d = self.filesaveasdialog.get_current_folder()
+        f = d + "/" + f
+        # Test for overwriting
+        response = 1
+        if os.path.isfile(f):
+            self.filesaveasdialog.hide()
+            response = self.dialogOverwrite.run()
+            self.dialogOverwrite.hide()
+
+        if response == 1:
+            copyfile("/tmp/favicon.ico", f)
+            self.filesaveasdialog.hide()
+
+    def on_buttonCancelSave_clicked(self, object):
+        self.filesaveasdialog.hide()
+
+    def on_buttonOverwrite_clicked(self, object):
+        self.dialogOverwrite.hide()
+
+    def on_buttonCancelOverwrite_clicked(self, object):
+        self.dialogOverwrite.hide()
+
+    def on_menuAbout_activate(self, object):
+        response = self.aboutdialog.run()
+        if response == -4:
+            self.aboutdialog.hide()
+
+
+signal.signal(signal.SIGINT, signal.SIG_DFL)
+
+if __name__ == "__main__":
+    main = faviconator()
+    Gtk.main()
