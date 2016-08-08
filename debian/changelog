@@ -1,3 +1,9 @@
+faviconator (20160808.1) xenial; urgency=low
+
+  * PPA Rebuild.
+
+ -- Philip Newborough <corenominal@corenominal.org>  Mon, 8 Aug 2016 20:05:22 +0100
+
 faviconator (20160808) xenial; urgency=low
 
   * Initial release.
